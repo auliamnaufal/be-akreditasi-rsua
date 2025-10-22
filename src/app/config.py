@@ -1,9 +1,14 @@
 from functools import lru_cache
+
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application configuration loaded from environment variables."""
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
     app_name: str = Field(default="RSUA Incident Service")
     environment: str = Field(default="development")
     database_url: str = Field(default="mysql+mysqlconnector://user:password@db:3306/akreditasi")
@@ -16,10 +21,6 @@ class Settings(BaseSettings):
     token_version: int = Field(default=1)
     model_path: str = Field(default="models/incident_classifier.pkl")
     model_fallback_version: str = Field(default="fallback-rule-0.1")
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 @lru_cache
