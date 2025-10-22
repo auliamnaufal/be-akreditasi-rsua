@@ -31,13 +31,13 @@ def create_audit_log(
 def submit_incident(session: Session, incident: Incident, actor: User) -> Incident:
     ensure_transition(incident, IncidentStatus.SUBMITTED, {role.name for role in actor.roles})
     previous_status = incident.status
-    prediction = predict_incident(incident.free_text_description, {"department": incident.department_id})
-    incident.predicted_category = prediction["category"]
-    incident.predicted_confidence = prediction["confidence"]
-    incident.model_version = prediction["model_version"]
+    # prediction = predict_incident(incident.free_text_description, {"department": incident.department_id})
+    incident.predicted_category = "test" #prediction["category"]
+    incident.predicted_confidence = "test" #prediction["confidence"]
+    incident.model_version = "test" #prediction["model_version"]
     incident.status = IncidentStatus.SUBMITTED
     incident.updated_at = datetime.now(timezone.utc)
-    create_audit_log(session, incident, actor, previous_status, IncidentStatus.SUBMITTED, payload_diff={"prediction": prediction})
+    create_audit_log(session, incident, actor, previous_status, IncidentStatus.SUBMITTED, payload_diff={"prediction": "test"})
     session.add(incident)
     return incident
 

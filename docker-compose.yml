@@ -12,6 +12,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      - .:/src
       - db_data:/var/lib/mysql
   api:
     build: .

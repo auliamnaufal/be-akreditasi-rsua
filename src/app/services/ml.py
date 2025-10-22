@@ -60,8 +60,9 @@ class IncidentClassifier:
         }
 
 
-classifier = IncidentClassifier()
+# classifier = IncidentClassifier()
 
 
 def predict_incident(text: str, metadata: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    return classifier.predict(text, metadata)
+    # return classifier.predict(text, metadata)
+    return
