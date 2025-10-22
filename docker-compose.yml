@@ -1,0 +1,29 @@
+version: '3.9'
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: akreditasi
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+  api:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=mysql+mysqlconnector://user:password@db:3306/akreditasi
+      - JWT_SECRET_KEY=change-me
+      - JWT_REFRESH_SECRET_KEY=change-me-refresh
+      - MODEL_PATH=models/incident_classifier.pkl
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+volumes:
+  db_data:
