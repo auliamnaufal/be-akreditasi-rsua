@@ -32,9 +32,9 @@ def submit_incident(session: Session, incident: Incident, actor: User) -> Incide
     ensure_transition(incident, IncidentStatus.SUBMITTED, {role.name for role in actor.roles})
     previous_status = incident.status
     # prediction = predict_incident(incident.free_text_description, {"department": incident.department_id})
-    incident.predicted_category = "test" #prediction["category"]
-    incident.predicted_confidence = "test" #prediction["confidence"]
-    incident.model_version = "test" #prediction["model_version"]
+    incident.predicted_category = "KTC" #prediction["category"]
+    incident.predicted_confidence = 12.0 #prediction["confidence"]
+    incident.model_version = "beta" #prediction["model_version"]
     incident.status = IncidentStatus.SUBMITTED
     incident.updated_at = datetime.now(timezone.utc)
     create_audit_log(session, incident, actor, previous_status, IncidentStatus.SUBMITTED, payload_diff={"prediction": "test"})

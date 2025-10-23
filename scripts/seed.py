@@ -17,6 +17,7 @@ DEFAULT_ROLES = {
 
 def run() -> None:
     with Session(engine) as session:
+        print(session)
         existing_roles = {role.name for role in session.exec(select(Role)).all()}
         for name, description in DEFAULT_ROLES.items():
             if name not in existing_roles:
@@ -38,4 +39,5 @@ def run() -> None:
 
 
 if __name__ == "__main__":
+    print("test234")
     run()

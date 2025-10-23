@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 from sqlmodel import Field, Relationship
 
 from .base import IDModel, TimestampedModel
@@ -9,6 +7,10 @@ from .role import Role, UserRole
 
 if TYPE_CHECKING:  # pragma: no cover
     from .incident import Incident
+else:
+    # Ensure the Incident model is registered with SQLAlchemy before relationship
+    # configuration runs so string-based relationships can resolve properly.
+    from .incident import Incident  # noqa: F401
 
 class User(IDModel, TimestampedModel, table=True):
     __tablename__ = "users"
@@ -21,7 +23,7 @@ class User(IDModel, TimestampedModel, table=True):
     last_password_change: Optional[datetime] = Field(default=None)
 
     # many-to-many to Role, SQLModel style
-    roles: list["Role"] = Relationship(back_populates="users", link_model=UserRole)
+    roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
 
     # one-to-many to Incident, SQLModel style
-    reported_incidents: list["Incident"] = Relationship(back_populates="reporter")
+    reported_incidents: List["Incident"] = Relationship(back_populates="reporter")

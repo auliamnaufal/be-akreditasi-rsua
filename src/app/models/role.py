@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 from sqlmodel import SQLModel, Field, Relationship  # <- use Relationship from sqlmodel
 
 from .base import IDModel, TimestampedModel
@@ -22,4 +20,4 @@ class Role(IDModel, TimestampedModel, table=True):
     description: Optional[str] = Field(default=None)
 
     # SQLModel-style many-to-many via link_model
-    users: list["User"] = Relationship(back_populates="roles", link_model=UserRole)
+    users: List["User"] = Relationship(back_populates="roles", link_model=UserRole)
