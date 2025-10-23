@@ -1,14 +1,14 @@
-from datetime import datetime
-from typing import List, Optional, TYPE_CHECKING
+from __future__ import annotations
 
-from sqlmodel import Field, Relationship, SQLModel
+from datetime import datetime
+from typing import Optional, TYPE_CHECKING
+from sqlmodel import Field, Relationship
 
 from .base import IDModel, TimestampedModel
 from .role import Role, UserRole
 
 if TYPE_CHECKING:  # pragma: no cover
     from .incident import Incident
-
 
 class User(IDModel, TimestampedModel, table=True):
     __tablename__ = "users"
@@ -20,13 +20,8 @@ class User(IDModel, TimestampedModel, table=True):
     token_version: int = Field(default=1, nullable=False)
     last_password_change: Optional[datetime] = Field(default=None)
 
-    roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
-    reported_incidents: List["Incident"] = Relationship(back_populates="reporter")
+    # many-to-many to Role, SQLModel style
+    roles: list["Role"] = Relationship(back_populates="users", link_model=UserRole)
 
-
-class UserRead(SQLModel):
-    id: int
-    email: str
-    full_name: str
-    is_active: bool
-    roles: List[str]
+    # one-to-many to Incident, SQLModel style
+    reported_incidents: list["Incident"] = Relationship(back_populates="reporter")

@@ -7,7 +7,12 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 from src.app.config import get_settings
-from src.app.models import department, incident, location, role, user
+from src.app.models.user import User
+from src.app.models.role import Role
+from src.app.models.incident import Incident
+from src.app.models.department import Department
+from src.app.models.location import Location
+
 
 config = context.config
 

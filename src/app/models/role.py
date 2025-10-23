@@ -1,7 +1,7 @@
-from __future__ import annotations  # <-- add this
+from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING, List
-from sqlmodel import Field, Relationship, SQLModel
+from typing import Optional, TYPE_CHECKING
+from sqlmodel import SQLModel, Field, Relationship  # <- use Relationship from sqlmodel
 
 from .base import IDModel, TimestampedModel
 
@@ -21,5 +21,5 @@ class Role(IDModel, TimestampedModel, table=True):
     name: str = Field(unique=True, index=True)
     description: Optional[str] = Field(default=None)
 
-    # forward ref to "User" is correct; link_model is the class, not a string
-    users: List["User"] = Relationship(back_populates="roles", link_model=UserRole)
+    # SQLModel-style many-to-many via link_model
+    users: list["User"] = Relationship(back_populates="roles", link_model=UserRole)

@@ -57,7 +57,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.get("/health", tags=["References"])
 def health_check() -> Dict[str, Any]:
-    return {"status": "ok", "app": settings.app_name}
+    return {"status": "ok", "app": settings.app_name, "holla": "Hollaa"}
 
 
 app.include_router(auth.router)
