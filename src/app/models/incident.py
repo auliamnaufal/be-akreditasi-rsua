@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional, TYPE_CHECKING
@@ -59,9 +57,9 @@ class Incident(IDModel, TimestampedModel, table=True):
     final_category: Optional[IncidentCategory] = Field(default=None, sa_column=Column(SQLEnum(IncidentCategory), nullable=True))
 
     reporter: "User" = Relationship(back_populates="reported_incidents")
-    location: "Location" | None = Relationship(back_populates="incidents")
-    department: "Department" | None = Relationship(back_populates="incidents")
-    audit_logs: list["AuditLog"] = Relationship(back_populates="incident")
+    location: Optional["Location"] = Relationship(back_populates="incidents")
+    department: Optional["Department"] = Relationship(back_populates="incidents")
+    audit_logs: List["AuditLog"] = Relationship(back_populates="incident")
 
 
 class AuditLog(IDModel, TimestampedModel, table=True):
