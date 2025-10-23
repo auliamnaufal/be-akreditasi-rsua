@@ -12,19 +12,30 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - .:/src
       - db_data:/var/lib/mysql
+
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # >>> match Dockerfile WORKDIR
+    working_dir: /src/app
     depends_on:
       - db
     environment:
-      - DATABASE_URL=mysql+mysqlconnector://user:password@db:3306/akreditasi
-      - JWT_SECRET_KEY=change-me
-      - JWT_REFRESH_SECRET_KEY=change-me-refresh
-      - MODEL_PATH=models/incident_classifier.pkl
+      DATABASE_URL: mysql+mysqlconnector://user:password@db:3306/akreditasi
+      JWT_SECRET_KEY: change-me
+      JWT_REFRESH_SECRET_KEY: change-me-refresh
+      MODEL_PATH: models/incident_classifier.pkl
+      PYTHONPATH: /src/app              # <-- guarantees 'src' is importable
     ports:
       - "8000:8000"
-    command: ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - .:/src/app                      # mount project here (matches WORKDIR)
+    command: >
+      sh -c "
+        uvicorn src.app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
 volumes:
   db_data:
