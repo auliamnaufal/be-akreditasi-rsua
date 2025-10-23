@@ -7,6 +7,10 @@ from .role import Role, UserRole
 
 if TYPE_CHECKING:  # pragma: no cover
     from .incident import Incident
+else:
+    # Ensure the Incident model is registered with SQLAlchemy before relationship
+    # configuration runs so string-based relationships can resolve properly.
+    from .incident import Incident  # noqa: F401
 
 class User(IDModel, TimestampedModel, table=True):
     __tablename__ = "users"
