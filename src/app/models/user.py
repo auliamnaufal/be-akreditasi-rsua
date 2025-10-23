@@ -20,7 +20,7 @@ class User(IDModel, TimestampedModel, table=True):
     token_version: int = Field(default=1, nullable=False)
     last_password_change: Optional[datetime] = Field(default=None)
 
-    roles: List[Role] = Relationship(back_populates="users", link_model=UserRole)
+    roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
     reported_incidents: List["Incident"] = Relationship(back_populates="reporter")
 
 
