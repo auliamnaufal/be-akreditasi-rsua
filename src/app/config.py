@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     refresh_token_expires_minutes: int = Field(default=60 * 24 * 7)
     password_hashing_scheme: str = Field(default="bcrypt")
     token_version: int = Field(default=1)
-    model_path: str = Field(default="models/incident_classifier.pkl")
+    model_path: str = Field(default="models/incident_model_lgbm_minilm.pkl")
     model_fallback_version: str = Field(default="fallback-rule-0.1")
 
 
