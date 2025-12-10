@@ -7,7 +7,11 @@ from typing import Any, Dict, List, Optional
 
 import joblib
 import numpy as np
-from sentence_transformers import SentenceTransformer
+
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - optional dependency for fallback
+    SentenceTransformer = None
 
 from ..config import get_settings
 from ..models.incident import IncidentCategory
@@ -72,6 +76,9 @@ class IncidentClassifier:
     def _ensure_embedder(self) -> None:
         """Load the MiniLM encoder lazily to avoid start-up lag."""
         if self.embedder is None:
+            if SentenceTransformer is None:
+                logger.warning("sentence_transformers not installed. Using fallback prediction.")
+                return
             try:
                 self.embedder = SentenceTransformer(MINILM_MODEL_NAME)
             except Exception as exc:  # pragma: no cover - best effort
@@ -108,7 +115,7 @@ class IncidentClassifier:
         if normalized.startswith("KPC"):
             return IncidentCategory.KPCS
         if normalized.startswith("SENTINEL"):
-            return IncidentCategory.SENTINEL
+            return IncidentCategory.Sentinel
         return None
 
     def _fallback_prediction(self, text: str) -> Dict[str, Any]:
@@ -173,3 +180,73 @@ classifier = IncidentClassifier()
 
 def predict_incident(text: str, metadata: Dict[str, Any] | None = None) -> Dict[str, Any]:
     return classifier.predict(text, metadata)
+
+
+# -------- SKP/MDP predictor --------
+
+_skp_mdp_artifacts: Optional[dict] = None
+
+
+def _load_skp_mdp_artifacts() -> Optional[dict]:
+    global _skp_mdp_artifacts
+    if _skp_mdp_artifacts is not None:
+        return _skp_mdp_artifacts
+    settings = get_settings()
+    model_path = Path(settings.skp_mdp_model_path)
+    if not model_path.exists():
+        logger.warning("SKP/MDP model %s not found. Skipping SKP/MDP prediction.", model_path)
+        _skp_mdp_artifacts = None
+        return None
+    try:
+        logger.info("Loading SKP/MDP model from %s", model_path)
+        _skp_mdp_artifacts = joblib.load(model_path)
+    except Exception as exc:  # pragma: no cover - best effort
+        logger.exception("Failed to load SKP/MDP model %s", model_path, exc_info=exc)
+        _skp_mdp_artifacts = None
+    return _skp_mdp_artifacts
+
+
+def predict_skp_mdp(text: str) -> Dict[str, Optional[str]]:
+    artifacts = _load_skp_mdp_artifacts()
+    if artifacts is None:
+        return {"skp": None, "mdp": None}
+    try:
+        logger.info("[SKP/MDP] Predicting for text length=%s", len(text) if text else 0)
+        pipeline = artifacts["model_pipeline"]
+        encoders = artifacts["label_encoders"]
+        targets = artifacts["target_columns"]
+        pred_indices = pipeline.predict([str(text)])
+        logger.info("[SKP/MDP] Raw pred indices: %s", pred_indices)
+        result = {}
+        for i, col_name in enumerate(targets):
+            idx = pred_indices[0][i]
+            label = encoders[col_name].inverse_transform([idx])[0]
+            result[col_name] = label
+        def normalize(label: Any, is_skp: bool) -> str | None:
+            if label is None:
+                return None
+            raw = str(label).strip().lower()
+            tokens = re.split(r"[:\s]+", raw)
+            digits = re.findall(r"\d+", raw)
+            if digits:
+                return digits[0]
+            for tok in tokens:
+                if is_skp and tok.startswith("skp"):
+                    num = re.findall(r"\d+", tok)
+                    return num[0] if num else tok.replace(" ", "").replace("skp", "skp")
+                if not is_skp and tok.startswith("mdp"):
+                    num = re.findall(r"\d+", tok)
+                    return num[0] if num else tok.replace(" ", "").replace("mdp", "mdp")
+            # fallback: strip spaces
+            return raw.replace(" ", "")
+
+        skp_key = next((k for k in result.keys() if k.lower().startswith("skp")), None)
+        mdp_key = next((k for k in result.keys() if "mdp" in k.lower()), None)
+
+        return {
+            "skp": normalize(result.get(skp_key), True) if skp_key else None,
+            "mdp": normalize(result.get(mdp_key), False) if mdp_key else None,
+        }
+    except Exception as exc:  # pragma: no cover - best effort
+        logger.exception("Failed SKP/MDP prediction", exc_info=exc)
+        return {"skp": None, "mdp": None}

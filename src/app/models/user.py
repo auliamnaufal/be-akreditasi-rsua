@@ -21,9 +21,13 @@ class User(IDModel, TimestampedModel, table=True):
     is_active: bool = Field(default=True)
     token_version: int = Field(default=1, nullable=False)
     last_password_change: Optional[datetime] = Field(default=None)
+    department_id: Optional[int] = Field(default=None, foreign_key="departments.id")
 
     # many-to-many to Role, SQLModel style
     roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
 
     # one-to-many to Incident, SQLModel style
-    reported_incidents: List["Incident"] = Relationship(back_populates="reporter")
+    reported_incidents: List["Incident"] = Relationship(
+        back_populates="reporter",
+        sa_relationship_kwargs={"foreign_keys": "Incident.reporter_id"},
+    )

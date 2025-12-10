@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     token_version: int = Field(default=1)
     model_path: str = Field(default="models/incident_model_lgbm_minilm.pkl")
     model_fallback_version: str = Field(default="fallback-rule-0.1")
+    skp_mdp_model_path: str = Field(default="models/skp_mdp_predictor.pkl")
 
 
 @lru_cache

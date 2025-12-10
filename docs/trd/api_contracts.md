@@ -179,39 +179,36 @@ All responses follow `{status_code, message, data}` shape unless an error occurs
 - **Response 200:** Full incident payload with audit trail.
 - **Errors:** 403 `forbidden`, 404 `incident_not_found`.
 
-## Approvals
+## Incident Category
 
-### PJ Review
-- **Method:** POST
-- **Path:** `/v1/approvals/{id}/pj`
-- **Headers:** `Authorization: Bearer <pj>`
+### Update Incident Category
+- **Method:** PUT
+- **Path:** `/v1/incidents/{id}/category`
+- **Headers:** `Authorization: Bearer <pj/mutu/admin>`
 - **Request:**
 ```json
 {
-  "category": "KTD",
-  "notes": "Pasien mengalami cedera ringan"
+  "category": "KTD"
 }
 ```
-- **Response 200:** Incident with `status = PJ_REVIEWED`, `pj_decision` set.
-- **Errors:** 403 `role_not_allowed`, 409 `invalid_state_transition`.
-
-### Mutu Review
-- **Method:** POST
-- **Path:** `/v1/approvals/{id}/mutu`
-- **Headers:** `Authorization: Bearer <mutu>`
-- **Request:**
+- **Response 200:**
 ```json
 {
-  "category": "KTD",
-  "notes": "Dikonfirmasi sebagai kejadian tidak diharapkan"
+  "status_code": 200,
+  "message": "Incident category updated",
+  "data": {
+    "id": 101,
+    "status": "SUBMITTED",
+    "final_category": "KTD",
+    "last_category_editor_id": 7
+  }
 }
 ```
-- **Response 200:** Incident with `status = MUTU_REVIEWED`, `mutu_decision` and `final_category` set.
-- **Errors:** 409 `invalid_state_transition` if PJ not complete.
+- **Errors:** 404 `incident_not_found`, 409 `invalid_state` if incident is draft/closed.
 
 ### Close Incident
 - **Method:** POST
-- **Path:** `/v1/approvals/{id}/close`
+- **Path:** `/v1/incidents/{id}/close`
 - **Headers:** `Authorization: Bearer <mutu/admin>`
 - **Request:** `{}`
 - **Response 200:** Incident status `CLOSED`.

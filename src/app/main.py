@@ -6,9 +6,10 @@ from typing import Any, Dict
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
-from .routers import admin, approvals, auth, incidents, references
+from .routers import admin, auth, dashboard, incidents, references
 from .security.jwt import decode_token
 
 settings = get_settings()
@@ -20,11 +21,24 @@ app = FastAPI(
     description="Hospital incident reporting service with accreditation-aligned categories.",
     openapi_tags=[
         {"name": "Auth", "description": "Authentication and token management"},
-        {"name": "Incidents", "description": "Incident drafting and submission"},
-        {"name": "Approvals", "description": "PJ and Mutu approval workflows"},
+        {"name": "Incidents", "description": "Incident drafting, submission, and category management"},
+        {"name": "Dashboard", "description": "Mutu dashboard metrics"},
         {"name": "Admin", "description": "Administrative endpoints"},
         {"name": "References", "description": "Reference data"},
     ],
+)
+
+# Allow frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://192.168.113.170:5173",
+        "http://192.168.113.11:5173",
+        "http://localhost:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -62,6 +76,6 @@ def health_check() -> Dict[str, Any]:
 
 app.include_router(auth.router)
 app.include_router(incidents.router)
-app.include_router(approvals.router)
+app.include_router(dashboard.router)
 app.include_router(admin.router)
 app.include_router(references.router)

@@ -18,10 +18,9 @@ router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
 def _issue_tokens(user: User) -> TokenPair:
     primary_role = user.roles[0].name if user.roles else "perawat"
-    roles = [r.name for r in user.roles]
-    access_token = create_access_token(str(user.id), primary_role, user.token_version, extra_claims={"roles": roles})
-    refresh_token = create_refresh_token(str(user.id), primary_role, user.token_version, extra_claims={"roles": roles})
-    return TokenPair(access_token=access_token, refresh_token=refresh_token)
+    access_token = create_access_token(str(user.id), primary_role, user.token_version, extra_claims={"roles": [primary_role]})
+    refresh_token = create_refresh_token(str(user.id), primary_role, user.token_version, extra_claims={"roles": [primary_role]})
+    return TokenPair(access_token=access_token, refresh_token=refresh_token, role=primary_role)
 
 
 @router.post("/register", response_model=APIResponse[TokenPair], status_code=201)

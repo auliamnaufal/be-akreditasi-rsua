@@ -15,9 +15,7 @@ class Transition:
 
 TRANSITIONS: Dict[IncidentStatus, Transition] = {
     IncidentStatus.DRAFT: Transition(IncidentStatus.DRAFT, IncidentStatus.SUBMITTED, {"perawat"}),
-    IncidentStatus.SUBMITTED: Transition(IncidentStatus.SUBMITTED, IncidentStatus.PJ_REVIEWED, {"pj"}),
-    IncidentStatus.PJ_REVIEWED: Transition(IncidentStatus.PJ_REVIEWED, IncidentStatus.MUTU_REVIEWED, {"mutu"}),
-    IncidentStatus.MUTU_REVIEWED: Transition(IncidentStatus.MUTU_REVIEWED, IncidentStatus.CLOSED, {"mutu", "admin"}),
+    IncidentStatus.SUBMITTED: Transition(IncidentStatus.SUBMITTED, IncidentStatus.CLOSED, {"mutu", "admin"}),
 }
 
 

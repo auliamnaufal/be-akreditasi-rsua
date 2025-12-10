@@ -15,7 +15,6 @@ def test_perawat_submit_triggers_prediction(client: TestClient, session, perawat
         "/v1/incidents",
         json={
             "free_text_description": "Pasien hampir jatuh di kamar mandi",
-            "attachments": [],
         },
         headers=headers,
     )
@@ -29,7 +28,7 @@ def test_perawat_submit_triggers_prediction(client: TestClient, session, perawat
     assert data["predicted_confidence"] is not None
 
 
-def test_mutu_cannot_review_before_pj(client: TestClient, session, perawat_user, pj_user, mutu_user):
+def test_mutu_can_edit_category_and_tracks_editor(client: TestClient, session, perawat_user, mutu_user):
     perawat_headers = auth_headers(client, perawat_user.email, "Password123")
     incident_id = client.post(
         "/v1/incidents",
@@ -41,24 +40,32 @@ def test_mutu_cannot_review_before_pj(client: TestClient, session, perawat_user,
     client.post(f"/v1/incidents/{incident_id}/submit", json={"confirm_submit": True}, headers=perawat_headers)
 
     mutu_headers = auth_headers(client, mutu_user.email, "Password123")
-    mutu_resp = client.post(
-        f"/v1/approvals/{incident_id}/mutu",
-        json={"category": "KTD", "notes": "N/A"},
+    update_resp = client.put(
+        f"/v1/incidents/{incident_id}/category",
+        json={"category": "KTD"},
         headers=mutu_headers,
     )
-    assert mutu_resp.status_code == 409
+    assert update_resp.status_code == 200
+    data = update_resp.json()["data"]
+    assert data["final_category"] == "KTD"
+    assert data["last_category_editor_id"] == mutu_user.id
+    assert data["status"] == IncidentStatus.SUBMITTED.value
 
-    pj_headers = auth_headers(client, pj_user.email, "Password123")
-    pj_resp = client.post(
-        f"/v1/approvals/{incident_id}/pj",
-        json={"category": "KTD", "notes": "Serious"},
-        headers=pj_headers,
-    )
-    assert pj_resp.status_code == 200
 
-    mutu_resp2 = client.post(
-        f"/v1/approvals/{incident_id}/mutu",
-        json={"category": "KTD", "notes": "Reviewed"},
+def test_cannot_edit_category_before_submit(client: TestClient, session, perawat_user, mutu_user):
+    perawat_headers = auth_headers(client, perawat_user.email, "Password123")
+    incident_id = client.post(
+        "/v1/incidents",
+        json={
+            "free_text_description": "Belum dikirim",
+        },
+        headers=perawat_headers,
+    ).json()["data"]["id"]
+
+    mutu_headers = auth_headers(client, mutu_user.email, "Password123")
+    update_resp = client.put(
+        f"/v1/incidents/{incident_id}/category",
+        json={"category": "KNC"},
         headers=mutu_headers,
     )
-    assert mutu_resp2.status_code == 200
+    assert update_resp.status_code == 409
